@@ -15,22 +15,32 @@ public class Random_Perfect_Gen {
     }
 
     public Graph generate(long seed){
+        /*
+         * 随机种子
+         */
         Random r = new Random(seed);
 
+        /*
+         * 生成两个array
+         * 每个包含顺序排列的ID
+         */
         List<Integer> order_a = new ArrayList<>();
         List<Integer> order_b = new ArrayList<>();
         for (int i = 0; i < num_vertex_each_label; i++) {
             order_a.add(i);
             order_b.add(i);
         }
+        /*
+         * 打乱ID
+         */
         Collections.shuffle(order_a,r);
         Collections.shuffle(order_b,r);
 
-
-
+        /*
+         * 对应每个ID生成一个vertex object
+         * 根据ID大小分配label
+         */
         ArrayList<Vertex> vertexes = new ArrayList<>();
-
-
         for(int i = 0; i < 2 * num_vertex_each_label; i++){
             Label label;
             if(i < num_vertex_each_label){
@@ -42,39 +52,40 @@ public class Random_Perfect_Gen {
             vertexes.add(new Vertex(i,new HashSet<>(),label));
         }
 
+        /*
+         * 生成一组perfect matching
+         */
         for(int i = 0; i < num_vertex_each_label; i++){
-            int a = order_a.get(i);
-            int b = order_b.get(i) + num_vertex_each_label;
-
-            for(int j = 0; j < 2; j++){
-                int temp = r.nextInt(num_vertex_each_label/2) + num_vertex_each_label;
-                vertexes.get(a).getTempUnmatch().add((vertexes.get(temp)));
-                vertexes.get(temp).getTempUnmatch().add((vertexes.get(a)));
-                vertexes.get(temp).combine_temp();
-            }
-            vertexes.get(a).getTempUnmatch().add((vertexes.get(b)));
-
-
-            for(int j = 0; j < 2; j++){
-                int temp = r.nextInt(num_vertex_each_label/2);
-                vertexes.get(b).getTempUnmatch().add((vertexes.get(temp)));
-                vertexes.get(temp).getTempUnmatch().add((vertexes.get(b)));
-                vertexes.get(temp).combine_temp();
-            }
-            vertexes.get(b).getTempUnmatch().add((vertexes.get(a)));
-
-            vertexes.get(a).combine_temp();
-            vertexes.get(b).combine_temp();
-
-
-
-            assert vertexes.get(a).adj_to(vertexes.get(b)): "error";
-            assert vertexes.get(b).adj_to(vertexes.get(a)): "error";
-
-
+            Vertex a = vertexes.get(i);
+            Vertex b = vertexes.get(i+num_vertex_each_label);
+            a.edges.add(b);
+            b.edges.add(a);
         }
 
-        return new Graph(vertexes,null);
+        /*
+         * 随机加入3N条边
+         */
+        generateRandomEdges(num_vertex_each_label*3,r,vertexes);
+
+        return new Graph(new HashSet<>(vertexes),null);
     }
 
+    /*
+     * 随机加入num条边
+     */
+    private void generateRandomEdges(int num, Random r, ArrayList<Vertex> varray){
+        int count = 0;
+        while(count < num){
+            /*
+             * 随机生成两个
+             */
+            Vertex a = varray.get(r.nextInt(num_vertex_each_label));
+            Vertex b = varray.get(r.nextInt(num_vertex_each_label) + num_vertex_each_label);
+            if(!a.adj_to(b)){
+                a.edges.add(b);
+                b.edges.add(a);
+                count+=1;
+            }
+        }
+    }
 }

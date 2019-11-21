@@ -9,7 +9,7 @@ public class Vertex {
 
     int ID;
     Label label;
-    HashSet<Vertex> unmatching_edges; // this attribute should never been changed;
+    public HashSet<Vertex> unmatching_edges; // this attribute should never been changed;
     private Vertex matching_vertex;
     /*
      * matching_vertex不能包含在temp_unmatching_edges中，需要检查
@@ -58,7 +58,11 @@ public class Vertex {
         matching_vertex = null;
     }
 
-    private void direct_match(Vertex x){
+    public void setTemp_unmatching_edges(HashSet<Vertex> temp_unmatching_edges) {
+        this.temp_unmatching_edges = temp_unmatching_edges;
+    }
+
+    void direct_match(Vertex x){
         x.matching_vertex = this;
         this.matching_vertex = x;
     }
@@ -69,6 +73,10 @@ public class Vertex {
 
     public boolean isFree(){
         return matching_vertex == null;
+    }
+
+    public HashSet<Vertex> get_adj() {
+        return new HashSet<>(unmatching_edges);
     }
 
     public void restoreTemp(){
@@ -87,24 +95,22 @@ public class Vertex {
     }
 
     public HashSet<Vertex> get_children(Label lb){
+        /*
+         * lb规定了是从~lb指向lb
+         * 如果lb是B
+         * 那么augment path中就是从A指向B
+         * 那往回（从B到A）找的时候，遇见B的话就return unmatched A
+         * 遇见A的话就return matched B
+         * A --> B - > A --> B
+         * 虚线，实线，虚线
+         */
         HashSet<Vertex> result = new HashSet<>();
-        if(lb == Label.A){
-            if(label == Label.A){
-                result.addAll(temp_unmatching_edges);
-                result.remove(matching_vertex);
-            }
-            else{
-                result.add(matching_vertex);
-            }
+        if(lb == label){
+            result.addAll(temp_unmatching_edges);
+            result.remove(matching_vertex);
         }
         else{
-            if(label == Label.B){
-                result.addAll(temp_unmatching_edges);
-                result.remove(matching_vertex);
-            }
-            else{
-                result.add(matching_vertex);
-            }
+            result.add(matching_vertex);
         }
         return result;
     }

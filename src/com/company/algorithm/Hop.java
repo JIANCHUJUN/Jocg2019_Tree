@@ -27,15 +27,6 @@ public class Hop {
          * we assume the perfect matching exists
          */
         while(bfs()){
-//            for(Vertex v:dist.keySet()){
-//                if(v!=null){
-//                    System.out.println(v.getID() + " " + dist.get(v));
-//                }
-//                else{
-//                    System.out.println("None" + " " + dist.get(null));
-//                }
-//            }
-//            System.out.println("---------------------------");
             for(Vertex v:matchingTable.all_free(Label.A)){
                 assert v.getMatch() == null;
                 dfs(v);
@@ -68,9 +59,6 @@ public class Hop {
                      * 第一个到达null的路径
                      * 会set dist[null] 为最短路径的值
                      */
-                    if(!(graph.get_vertexes().contains(u) && graph.get_vertexes().contains(u.getMatch()))){
-                        continue;
-                    }
                     if(dist.get(u.getMatch()) == INF){
                         dist.put(u.getMatch(), dist.get(v) + 1);
                         queue.addLast(u.getMatch());
@@ -91,10 +79,7 @@ public class Hop {
         }
 
         for(Vertex u:v.edges()){
-            System.out.println(v.getID() + " " + u.getID());
-            if(!(graph.get_vertexes().contains(u) && graph.get_vertexes().contains(u.getMatch()))){
-                continue;
-            }
+            //System.out.println(v.getID() + " " + u.getID());
             if(dist.get(u.getMatch()) == dist.get(v) + 1){
                 if(dfs(u.getMatch())){
                     matchingTable.match(u,v);

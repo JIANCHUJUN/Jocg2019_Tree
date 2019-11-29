@@ -59,9 +59,11 @@ public class Hop {
                      * 第一个到达null的路径
                      * 会set dist[null] 为最短路径的值
                      */
-                    if(dist.get(u.getMatch()) == INF){
-                        dist.put(u.getMatch(), dist.get(v) + 1);
-                        queue.addLast(u.getMatch());
+                    if(graph.get_vertexes().contains(u)){
+                        if(dist.get(u.getMatch()) == INF){
+                            dist.put(u.getMatch(), dist.get(v) + 1);
+                            queue.addLast(u.getMatch());
+                        }
                     }
                 }
             }
@@ -80,13 +82,22 @@ public class Hop {
 
         for(Vertex u:v.edges()){
             //System.out.println(v.getID() + " " + u.getID());
-            if(dist.get(u.getMatch()) == dist.get(v) + 1){
-                if(dfs(u.getMatch())){
-                    matchingTable.match(u,v);
-                    //System.out.println(v.getID() + " " + u.getID());
-                    return true;
+            assert dist != null;
+            assert u != null;
+            //assert dist.containsKey(u.getMatch());
+            if(!dist.containsKey(u.getMatch())){
+                int a = 0;
+            }
+            if(graph.get_vertexes().contains(u)){
+                if(dist.get(u.getMatch()) == dist.get(v) + 1){
+                    if(dfs(u.getMatch())){
+                        matchingTable.match(u,v);
+                        //System.out.println(v.getID() + " " + u.getID());
+                        return true;
+                    }
                 }
             }
+
         }
         dist.put(v,INF);
         return false;

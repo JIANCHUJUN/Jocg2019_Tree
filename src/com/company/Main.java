@@ -6,6 +6,7 @@ import com.company.element.MatchingTable;
 import com.company.element.Vertex;
 import com.company.generator.Random_Perfect_Gen;
 import com.company.generator.WeightAssigner;
+import com.company.test.TestEuclidean;
 import com.company.test.TestHop;
 import com.company.test.TestJocg;
 
@@ -18,7 +19,8 @@ public class Main {
 	// write your code here
 //        System.out.println("Hello World!");
 //        TestHop.test();
-        TestJocg.test();
+        //TestJocg.test();
+        TestEuclidean.test();
         System.out.println("Done!");
 
     }

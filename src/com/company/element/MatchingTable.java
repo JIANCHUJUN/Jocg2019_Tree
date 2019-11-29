@@ -18,6 +18,12 @@ public class MatchingTable {
         this.matching_num= 0;
     }
 
+    public void reset(){
+        for(Vertex vertex:graph.get_vertexes()){
+            vertex.matching_vertex = null;
+        }
+    }
+
     /*
      * given a vertex
      * return the id of pieces where this vertex is in
@@ -155,12 +161,16 @@ public class MatchingTable {
         printMatching();
     }
 
-    public void printMatching(){
+    public int printMatching(){
+        int count = 0;
         for(Vertex v:graph.get_vertexes()){
-            if(v.label == Label.A){
+            if(v.label == Label.A && !v.isFree()){
                 System.out.println(v.ID+"-->"+v.getMatch().ID);
+                count+=1;
             }
         }
+        System.out.println("Max Matching: " + count);
+        return count;
     }
 
     public boolean finish(){

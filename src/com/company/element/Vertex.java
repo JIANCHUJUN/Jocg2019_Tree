@@ -1,16 +1,13 @@
 package com.company.element;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 public class Vertex {
 
     int ID;
     Label label;
     public HashSet<Vertex> edges; // this attribute should never been changed;
-    private Vertex matching_vertex;
+    public Vertex matching_vertex;
 
     public Vertex(int id, HashSet<Vertex> edges, Label label){
         this.ID = id;
@@ -34,7 +31,6 @@ public class Vertex {
         x.matching_vertex = this;
         this.matching_vertex = x;
     }
-
     public boolean adj_to(Vertex x){
         return edges.contains(x) && x.edges.contains(this);
     }

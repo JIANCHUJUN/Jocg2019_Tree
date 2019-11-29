@@ -1,4 +1,4 @@
-package com.company.generator;
+package com.company.Abandoned;
 
 import com.company.element.Graph;
 import com.company.element.Label;

@@ -9,31 +9,21 @@ public class Graph {
 
     private HashSet<Vertex> vertexes;
     /*
-     * weights只储存weight为1的edge
+     *
      */
-    public HashMap<Vertex,HashSet<Vertex>> weights;
+    public HashSet<Vertex> separator;
 
-    public Graph(HashSet<Vertex> vs, HashMap<Vertex,HashSet<Vertex>> ws){
+    public Graph(HashSet<Vertex> vs, HashSet<Vertex> ws){
         this.vertexes = vs;
-        this.weights = ws;
+        this.separator = ws;
     }
 
 
     public int getWeight(Vertex v1, Vertex v2){
-        /*
-         * 因为我们不知道顺序，所以t1 t2都要检测一下
-         */
-        if(!v1.adj_to(v2)){
-            System.out.println("Trying to get weight of an edge that doesn't exist.");
-            throw new NullPointerException();
-        }
-        if(weights.containsKey(v1) && weights.get(v1).contains(v2)){
+        assert v1.adj_to(v2);
+        if(separator.contains(v1) || separator.contains(v2)){
             return 1;
         }
-        if(weights.containsKey(v2) && weights.get(v2).contains(v1)){
-            return 1;
-        }
-
         return 0;
 
     }

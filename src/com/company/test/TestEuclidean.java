@@ -12,18 +12,23 @@ public class TestEuclidean {
     }
 
     public static void test(){
-        EuclideanGen euclideanGen = new EuclideanGen(100);
-        Graph graph = euclideanGen.generate(100,80,5);
+        for(int i = 100; i < 5000; i+=100){
+            EuclideanGen euclideanGen = new EuclideanGen(100);
+            Graph graph = euclideanGen.generate(i,80,5);
 
-        Hop hop = new Hop(graph);
-        MatchingTable matchingTable_Hop = hop.hop_();
-        matchingTable_Hop.printMatching();
-        matchingTable_Hop.reset();
+            Hop hop = new Hop(graph);
+            MatchingTable matchingTable_Hop = hop.hop_();
+            int counth = matchingTable_Hop.printMatching();
+            matchingTable_Hop.reset();
 
-        matchingTable_Hop.printMatching();
+            matchingTable_Hop.printMatching();
 
-        MatchingTable matchingTable_Jocg = JOCG.Jocg(graph);
-        matchingTable_Jocg.printMatching();
+            MatchingTable matchingTable_Jocg = JOCG.Jocg(graph);
+            int countj = matchingTable_Jocg.printMatching();
+
+            assert counth == countj;
+        }
+
 
 
     }

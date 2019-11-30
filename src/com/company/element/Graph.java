@@ -21,7 +21,7 @@ public class Graph {
 
     public int getWeight(Vertex v1, Vertex v2){
         assert v1.adj_to(v2);
-        if(separator.contains(v1) || separator.contains(v2)){
+        if(separator.contains(v1) && separator.contains(v2)){
             return 1;
         }
         return 0;

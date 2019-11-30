@@ -10,6 +10,7 @@ import com.company.test.TestEuclidean;
 import com.company.test.TestHop;
 import com.company.test.TestJocg;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -20,7 +21,13 @@ public class Main {
 //        System.out.println("Hello World!");
 //        TestHop.test();
         //TestJocg.test();
-        TestEuclidean.test();
+        try{
+            TestEuclidean.test();
+        }
+        catch (IOException ioe){
+            System.out.println("Exception");
+        }
+
         System.out.println("Done!");
 
     }

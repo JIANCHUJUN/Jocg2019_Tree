@@ -24,11 +24,15 @@ public class MatchingTable {
         }
     }
 
+    public int getWeight(Vertex v, Vertex u){
+        return graph.getWeight(v,u);
+    }
+
     /*
      * given a vertex
      * return the id of pieces where this vertex is in
      */
-    private Graph getPiece(Vertex v){
+    public Graph getPiece(Vertex v){
         return piece_table.get(v);
     }
 
@@ -165,7 +169,7 @@ public class MatchingTable {
         int count = 0;
         for(Vertex v:graph.get_vertexes()){
             if(v.label == Label.A && !v.isFree()){
-                System.out.println(v.ID+"-->"+v.getMatch().ID);
+                //System.out.println(v.ID+"-->"+v.getMatch().ID);
                 count+=1;
             }
         }

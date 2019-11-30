@@ -21,12 +21,16 @@ public class JOCG {
     static HashMap<Vertex,Integer> dist;
     static MatchingTable matchingTable;
 
+    static HashSet<Vertex> explored;
+    static HashSet<Vertex> tempexpl;
+    static HashSet<Vertex> temppath;
+
     public static MatchingTable Jocg(Graph graph){
+
+
         matchingTable = new MatchingTable(graph);
         HashSet<Graph> pieces = matchingTable.splitGraph();
 
-//        TestSplitGraph.Test(pieces,graph.get_vertexes().size(),graph);
-//        System.out.println("Test Split Finished");
         /*
          * 刚split过后，所有的weight为1的edge已经被移除了
          */
@@ -39,9 +43,22 @@ public class JOCG {
         System.out.println("HKs Finished");
 
         while(bfs()){
-            System.out.println("In loop");
+            //System.out.println("In loop");
+            explored = new HashSet<>();
             for(Vertex v:matchingTable.all_free(Label.A)){
+                tempexpl = new HashSet<>();
+                temppath = new HashSet<>();
                 dfs(v);
+
+                HashSet<Graph> effectiveP = new HashSet<>();
+                for(Vertex p:temppath){
+                    effectiveP.add(matchingTable.getPiece(p));
+                }
+                for(Vertex t:tempexpl){
+                    if(effectiveP.contains(matchingTable.getPiece(t))){
+                        explored.remove(t);
+                    }
+                }
             }
         }
 
@@ -52,6 +69,7 @@ public class JOCG {
         LinkedList<Vertex> queue = new LinkedList<>();
         dist = new HashMap<>();
         dist.put(null,INF);
+        //这里要用double ended queue
         for(Vertex v:matchingTable.all(Label.A)){
             if(v.isFree()){
                 queue.addLast(v); dist.put(v,0);
@@ -64,16 +82,39 @@ public class JOCG {
             Vertex v = queue.pop();
             /*
              * 之后到达null的路径不会再更新dist[null]
+             * 只会更新距离等于最短距离的v
+             * 因为0/1中，距离不一定总是增加（可以不变），所以用<=
              */
-            if(dist.get(v) < dist.get(null)){
+            if(dist.get(v) <= dist.get(null)){
                 for(Vertex u:v.edges()){
                     /*
                      * 第一个到达null的路径
                      * 会set dist[null] 为最短路径的值
                      */
+                    /*
+                     * u.getMatch()的意思：
+                     * v是A，u是B
+                     * u的距离程序是不记录的，而u的match是A或者无
+                     * 如果是无的话，则说明u是free
+                     * 否则查看u.getMatch()的距离
+                     * 如果是INF，说明未被探索过，目前是最短距离
+                     * 否则的话说明之前assign的距离为最短距离，不作更新
+                     */
                     if(dist.get(u.getMatch()) == INF){
-                        dist.put(u.getMatch(), dist.get(v) + 1);
-                        queue.addLast(u.getMatch());
+                        //getMatch == null，所以探索结束，
+                        if(u.getMatch() == null){
+                            dist.put(u.getMatch(), dist.get(v));
+                        }
+                        else{
+                            //getMatch!=null，所以根据weight更新距离
+                            dist.put(u.getMatch(), dist.get(v) + matchingTable.getWeight(u,u.getMatch()));
+                            if(matchingTable.getWeight(u,u.getMatch()) == 0){
+                                queue.addFirst(u.getMatch());
+                            }
+                            else{
+                                queue.addLast(u.getMatch());
+                            }
+                        }
                     }
                 }
             }
@@ -86,13 +127,19 @@ public class JOCG {
          * 一个free B的get match是null
          * 所以null的时候说明找到了一个free B
          */
+        if(explored.contains(v)){
+            return false;
+        }
+        explored.add(v);
+        tempexpl.add(v);
         if(v == null){
             return true;
         }
 
         for(Vertex u:v.edges()){
-            if(dist.get(u.getMatch()) == dist.get(v) + 1){
+            if(dist.get(u.getMatch()) - dist.get(v) <= 1){
                 if(dfs(u.getMatch())){
+                    temppath.add(v);
                     matchingTable.match(u,v);
                     return true;
                 }

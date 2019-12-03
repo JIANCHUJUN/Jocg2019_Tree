@@ -27,9 +27,12 @@ public class JOCG {
 
     public static MatchingTable Jocg(Graph graph){
 
+        long start = System.currentTimeMillis();
 
         matchingTable = new MatchingTable(graph);
-        HashSet<Graph> pieces = matchingTable.splitGraph();
+        HashSet<Graph> pieces =graph.pieces;
+
+        long splitEnd = System.currentTimeMillis();
 
         /*
          * 刚split过后，所有的weight为1的edge已经被移除了
@@ -40,7 +43,8 @@ public class JOCG {
             hop.hop_();
         }
 
-        System.out.println("HKs Finished");
+        long hkEnd = System.currentTimeMillis();
+        //System.out.println("HKs Finished");
 
         while(bfs()){
             //System.out.println("In loop");
@@ -52,15 +56,24 @@ public class JOCG {
 
                 HashSet<Graph> effectiveP = new HashSet<>();
                 for(Vertex p:temppath){
-                    effectiveP.add(matchingTable.getPiece(p));
+                    effectiveP.add(graph.piecesTable.get(p));
                 }
                 for(Vertex t:tempexpl){
-                    if(effectiveP.contains(matchingTable.getPiece(t))){
+                    if(effectiveP.contains(graph.piecesTable.get(t))){
                         explored.remove(t);
                     }
                 }
             }
         }
+
+        long bdfsEnd = System.currentTimeMillis();
+
+        double splitDur = (double) (splitEnd- start)/(bdfsEnd - start) * 100;
+        double hkDur = (double) (hkEnd - splitEnd)/(bdfsEnd - start) * 100;
+        double bdfsDur = (double) (bdfsEnd -hkEnd)/(bdfsEnd - start) * 100;
+        System.out.println("split takes: " + splitDur + "%");
+        System.out.println("hk takes: " + hkDur + "%");
+        System.out.println("bdfs takes: " + bdfsDur + "%");
 
         return matchingTable;
     }
@@ -107,12 +120,12 @@ public class JOCG {
                         }
                         else{
                             //getMatch!=null，所以根据weight更新距离
-                            dist.put(u.getMatch(), dist.get(v) + matchingTable.getWeight(u,u.getMatch()));
-                            if(matchingTable.getWeight(u,u.getMatch()) == 0){
-                                queue.addFirst(u.getMatch());
+                            dist.put(u.getMatch(), dist.get(v) + matchingTable.graph.getWeight(u,u.getMatch()));
+                            if(matchingTable.graph.getWeight(u,u.getMatch()) == 0){
+                                queue.addLast(u.getMatch());
                             }
                             else{
-                                queue.addLast(u.getMatch());
+                                queue.addFirst(u.getMatch());
                             }
                         }
                     }
@@ -136,14 +149,23 @@ public class JOCG {
             return true;
         }
 
+        LinkedList<Vertex> stack = new LinkedList<>();
         for(Vertex u:v.edges()){
-            if(dist.get(u.getMatch()) - dist.get(v) <= 1){
-                if(dfs(u.getMatch())){
-                    temppath.add(v);
-                    matchingTable.match(u,v);
-                    return true;
-                }
+            if(dist.get(u.getMatch()) == dist.get(v) + 1){
+                stack.addFirst(u);
             }
+            else if(dist.get(u.getMatch()) == dist.get(v)){
+                stack.addLast(u);
+            }
+        }
+
+        for(Vertex u:stack){
+            if(dfs(u.getMatch())){
+                temppath.add(v);
+                matchingTable.match(u,v);
+                return true;
+            }
+
         }
         dist.put(v,INF);
         return false;

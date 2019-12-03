@@ -7,11 +7,15 @@ import java.util.LinkedList;
 
 public class Graph {
 
-    private HashSet<Vertex> vertexes;
+    public HashSet<Vertex> vertexes;
     /*
      *
      */
     public HashSet<Vertex> separator;
+
+    public HashSet<Graph> pieces;
+
+    public HashMap<Vertex,Graph> piecesTable;
 
     public Graph(HashSet<Vertex> vs, HashSet<Vertex> ws){
         this.vertexes = vs;
@@ -21,7 +25,7 @@ public class Graph {
 
     public int getWeight(Vertex v1, Vertex v2){
         assert v1.adj_to(v2);
-        if(separator.contains(v1) && separator.contains(v2)){
+        if(piecesTable.get(v1) != piecesTable.get(v2)){
             return 1;
         }
         return 0;

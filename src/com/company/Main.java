@@ -27,7 +27,7 @@ public class Main {
         catch (IOException ioe){
             System.out.println("Exception");
         }
-
+        //TestEuclidean.testGen();
         System.out.println("Done!");
 
     }

@@ -2,6 +2,7 @@ package com.company.test;
 
 import com.company.algorithm.Hop;
 import com.company.algorithm.JOCG;
+import com.company.algorithm.JOCG_N;
 import com.company.element.Graph;
 import com.company.element.MatchingTable;
 import com.company.generator.EuclideanGen;
@@ -18,13 +19,13 @@ public class TestEuclidean {
     public static void test() throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter("EculideanOut.txt"));
         writer.write("");
-        for(int i = 100; i < 5000; i+=100){
+        for(int i = 200; i < 3000; i+=100){
             double timeElapsedHop = 0;
             double timeElapsedJocg = 0;
             int times = 5;
             for(int time = 0; time < times; time++){
                 EuclideanGen euclideanGen = new EuclideanGen(100);
-                Graph graph = euclideanGen.generate(i,80,5);
+                Graph graph = euclideanGen.generate(i,80,10,1,1);
 
                 long starth = System.currentTimeMillis();
                 Hop hop = new Hop(graph);
@@ -48,7 +49,7 @@ public class TestEuclidean {
             timeElapsedHop /= times;
             timeElapsedJocg /= times;
 
-            double ratio = Math.log(timeElapsedJocg/timeElapsedHop);
+            double ratio = timeElapsedJocg/timeElapsedHop;
             System.out.println("Jocg: " + timeElapsedJocg);
             System.out.println("Hop: " + timeElapsedHop);
             System.out.println("Jocg/Hop: " + ratio);
@@ -57,12 +58,20 @@ public class TestEuclidean {
         writer.close();
     }
 
-    public static void testGenerate(){
-        for(int i = 10; i < 20; i ++){
-            int side = 16*i;
-            int bottlenect = i;
-            EuclideanGen euclideanGen = new EuclideanGen(side);
-            Graph graph = euclideanGen.generate(side,side,bottlenect);
+    public static void testGen(){
+        for(int i = 1000; i < 3000; i+=100){
+            EuclideanGen euclideanGen = new EuclideanGen(2131);
+            Graph graph = euclideanGen.generate(i,80,40,0.5,4);
+            MatchingTable matchingTable = new MatchingTable(graph);
+            int smallestSub = Integer.MAX_VALUE;
+            for(Graph sub:graph.pieces){
+                if(sub.vertexes.size() < smallestSub){
+                    smallestSub = sub.vertexes.size();
+                }
+            }
+            System.out.println(smallestSub + " " + graph.vertexes.size());
+            System.out.println(i + ": "+(double) smallestSub/graph.vertexes.size()*100 + "%");
+            int a = 0;
         }
     }
 }

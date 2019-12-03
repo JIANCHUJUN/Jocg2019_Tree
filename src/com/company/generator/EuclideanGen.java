@@ -26,11 +26,28 @@ public class EuclideanGen {
         this.seed = seed;
     }
 
-    public Graph generate(int num, double side, double bottleneck){
+    public Graph generate(int num, double side,double middle, double small, double bottleneck){
         /*
          * 随机种子
          */
         Random r = new Random(seed);
+
+        /*
+         * 定义grid
+         * side为middle的整数倍
+         * middle为small的整数倍
+         * bottleneck为2*small的整数倍
+         *
+         * step表示一个middle行中有几个small square
+         * hstep表示一个完整行中有几个samll square
+         */
+
+        assert side%middle == 0;
+        assert middle%small == 0;
+        assert bottleneck%(2*small) == 0;
+
+        int step = (int)(middle/small);
+        int hstep = (int)(side/small);
 
         /*
          * 在side*side的square中生成2n个点
@@ -51,47 +68,33 @@ public class EuclideanGen {
         }
 
         //生成长度为bottleneck以下的edge
-        for(Point source:points){
-            HashSet<Vertex> edges = new HashSet<>();
-            for(Point target:points){
-                //如果label相同，或者是source自身，则不计算距离
-                if(source == target || vertices.get(source).getLabel() == vertices.get(target).getLabel()){
-                    continue;
+        {
+            for(Point source:points){
+                HashSet<Vertex> edges = new HashSet<>();
+                for(Point target:points){
+                    //如果label相同，或者是source自身，则不计算距离
+                    if(source == target || vertices.get(source).getLabel() == vertices.get(target).getLabel()){
+                        continue;
+                    }
+                    double x = source.x - target.x;
+                    double y = source.y - target.y;
+                    double d = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
+                    if(d <= bottleneck){
+                        edges.add(vertices.get(target));
+                    }
                 }
-                double x = source.x - target.x;
-                double y = source.y - target.y;
-                double d = Math.sqrt(Math.pow(x,2) + Math.pow(y,2));
-                if(d <= bottleneck){
-                    edges.add(vertices.get(target));
+                vertices.get(source).edges = edges;
+            }
+
+            for(Vertex v:vertices.values()){
+                for(Vertex u:v.edges){
+                    assert v.adj_to(u);
                 }
             }
-            vertices.get(source).edges = edges;
         }
 
-        for(Vertex v:vertices.values()){
-            for(Vertex u:v.edges){
-                assert v.adj_to(u);
-            }
-        }
 
-        /*
-         * 选择grid
-         * 默认：每个小grid的side为small，大grid的side1为middle
-         * bcMap储存着各条线内boundary cells的数量
-         * bc = boundary cell count
-         * small为side的整数倍
-         */
-        double small = bottleneck;
-        /*
-         * middle必须为整数倍的small
-         */
-        double middle = 4*small;
 
-        assert side%middle == 0;
-        assert middle%small == 0;
-
-        int step = (int)(middle/small);
-        int hstep = (int)(side/small);
 
 
         HashSet<Vertex>[][] cells = new HashSet[hstep][hstep];
@@ -112,30 +115,78 @@ public class EuclideanGen {
             }
         }
 
+        /*
+         * 统计各行各列的vertex数量
+         * 分别储存在horizontal和vertical中
+         */
+        HashMap<Integer,Integer> horizontal = new HashMap<>();
+        HashMap<Integer,Integer> vertical = new HashMap<>();
+        {
+            for(int i = 0; i < side/small; i++){
+                for(int j = 0; j < side/small; j++){
+                    int size;
+                    if(cells[i][j] == null){
+                        size = 0;
+                    }
+                    else{
+                        size = cells[i][j].size();
+                    }
+
+                    if(!horizontal.containsKey(i)){
+                        horizontal.put(i,size);
+                    }
+                    else{
+                        horizontal.put(i,horizontal.get(i) + size);
+                    }
+
+                    if(!vertical.containsKey(j)){
+                        vertical.put(j,size);
+                    }
+                    else{
+                        vertical.put(j,vertical.get(j) + size);
+                    }
+                }
+            }
+        }
+
+
+
         //找到最少的boundary point的组合
-        HashSet<Vertex> bestx = null;
-        HashSet<Vertex> besty = null;
+        Integer bestBCx = Integer.MAX_VALUE;
+        Integer idxx = null;
+        Integer bestBCy = Integer.MAX_VALUE;
+        Integer idxy = null;
+
+
         {
             /*
              *x轴
              */
+            for(int i = 0; i < middle/small; i++){
+                int currBC = 0;
 
-            //小方块向右移动
-            for (int i = 0; i < middle / small; i++) {
-                HashSet<Vertex> currBC = new HashSet<>();
-                //大方块向右移动
-                for (int j = 0; j < side / middle; j++) {
-                    //每个大方块的起始位置
-                    int line = i + step * j;
-                    for (int k = 0; k < side / small; k++) {
-                        if (cells[line][k] != null) {
-                            //这里算的是每个cell里point数量的总和，而不是cell的数量
-                            currBC.addAll(cells[line][k]);
-                        }
-                    }
+                /*
+                 * 判断最左最右是否超出边界
+                 */
+
+                if(i - (bottleneck/small/2 - 1) - 1 < 0){
+                    continue;
                 }
-                if (bestx == null || currBC.size() < bestx.size()) {
-                    bestx = currBC;
+                if(i + (side/middle - 1) * (middle/small) + (bottleneck/small/2 - 1) >= side/small){
+                    continue;
+                }
+
+                for(int j = 0; j < side/middle; j++){
+                    for(int k = 0; k < bottleneck/small/2; k++){
+                        currBC+=horizontal.get((int)(i+j*(middle/small)) - k - 1);
+                        currBC+=horizontal.get((int)(i+j*(middle/small)) + k);
+
+                    }
+
+                }
+                if(currBC < bestBCx){
+                    bestBCx = currBC;
+                    idxx = i;
                 }
             }
 
@@ -143,32 +194,85 @@ public class EuclideanGen {
             /*
              *y轴
              */
+            for(int i = 0; i < middle/small; i++){
+                int currBC = 0;
 
-            //小方块向右移动
-            for (int i = 0; i < middle / small; i++) {
-                HashSet<Vertex> currBC = new HashSet<>();
-                //大方块向右移动
-                for (int j = 0; j < side / middle; j++) {
-                    //每个大方块的起始位置
-                    int line = i + step * j;
-                    for (int k = 0; k < side / small; k++) {
-                        if (cells[k][line] != null) {
-                            //这里算的是每个cell里point数量的总和，而不是cell的数量
-                            currBC.addAll(cells[k][line]);
-                        }
+                if(i - (bottleneck/small/2 - 1) - 1 < 0){
+                    continue;
+                }
+                if(i + (side/middle - 1) * (middle/small) + (bottleneck/small/2 - 1) >= side/small){
+                    continue;
+                }
+                for(int j = 0; j < side/middle; j++){
+                    for(int k = 0; k < bottleneck/small/2; k++){
+                        currBC+=vertical.get((int)(i+j*(middle/small)) - k - 1);
+                        currBC+=vertical.get((int)(i+j*(middle/small)) + k);
+
                     }
                 }
-                if (besty == null || currBC.size() < besty.size()) {
-                    besty = currBC;
+                if(currBC < bestBCy){
+                    bestBCy = currBC;
+                    idxy = i;
                 }
             }
         }
 
+        assert idxx != null;
+        assert idxy != null;
+
         //知道bestx,besty之后开始assign weights
-        HashSet<Vertex> separator = new HashSet<>();
-        separator.addAll(bestx);
-        separator.addAll(besty);
-        Graph graph = new Graph(new HashSet<Vertex>(vertices.values()),separator);
+
+
+        Graph[][] pieces = new Graph[(int)Math.pow(side/middle + 1,2)][(int)Math.pow(side/middle + 1,2)];
+        HashMap<Vertex,Graph> piecesTable = new HashMap<>();
+        HashSet<Graph> piecesset = new HashSet<>();
+        {
+            //遍历所有的cell，根据他们的坐标算出对应的pieces
+            for(int i = 0; i < side/small; i++){
+                for(int j = 0; j < side/small; j++){
+                    if(cells[i][j] == null){
+                        continue;
+                    }
+
+                    /*
+                     * 坐标计算方式
+                     * hint: 平移
+                     */
+                    int x = (int)Math.floor(Math.floor(i-idxx)/step) + 1;
+                    int y = (int)Math.floor(Math.floor(j-idxy)/step) + 1;
+
+                    /*
+                     * 每次需要新建piece的时候，也把piece加到pieceset里面
+                     */
+                    if(pieces[x][y] == null){
+                        pieces[x][y] = new Graph(new HashSet<Vertex>(),null);
+                        piecesset.add(pieces[x][y]);
+                    }
+                    pieces[x][y].vertexes.addAll(cells[i][j]);
+
+                    for(Vertex v:cells[i][j]){
+                        piecesTable.put(v,pieces[x][y]);
+                    }
+                }
+            }
+        }
+
+
+        //test Graph是否valid
+        {
+            int count = 0;
+            for(Graph graph:piecesset){
+                count += graph.vertexes.size();
+            }
+            assert count == vertices.values().size();
+        }
+
+
+
+
+        Graph graph = new Graph(new HashSet<Vertex>(vertices.values()),null);
+        graph.pieces = piecesset;
+        graph.piecesTable = piecesTable;
 
         return graph;
 
@@ -177,6 +281,7 @@ public class EuclideanGen {
     private int search(double coord,double small) {
         return (int)(coord/small);
     }
+
 
 
 }
